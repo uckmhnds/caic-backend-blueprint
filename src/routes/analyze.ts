@@ -14,7 +14,7 @@ router.post("/", validateAnalyzeRequest, async (req: Request, res: Response) => 
     );
 
     const result = await queryAgentEngine({ user_id, transcript, images });
-    const report = result.output?.actions?.state_delta?.report;
+    const report = result.actions?.state_delta?.report;
 
     if (!report) {
       res.status(502).json({

@@ -100,7 +100,7 @@ Submit an observer transcript for structured analysis.
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `user_id` | string | yes | Identifier for the calling user/service |
-| `transcript` | string | yes | Raw observer radio transcript |
+| `transcript` | string | yes | Raw transcript text or stringified JSON array of transcript objects |
 | `images` | array | no | Base64-encoded images |
 | `images[].mimeType` | string | yes* | e.g. `image/jpeg` |
 | `images[].data` | string | yes* | Base64-encoded image data |
@@ -115,6 +115,19 @@ curl -X POST http://localhost:3000/analyze \
     "transcript": "00:02\nI traveled east facing terrain at 11,500 feet near Berthoud Pass.\n00:15\nWinds were moderate from the west at 20 mph. No avalanches observed."
   }'
 ```
+
+**Structured transcript (from transcription service):**
+
+```bash
+curl -X POST http://localhost:3000/analyze \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "backend-service",
+    "transcript": "[{\"transcript\":[{\"text\":\"I traveled east facing terrain at 11,500 feet near Berthoud Pass.\",\"startTime\":2.04,\"endTime\":8.0},{\"text\":\"Winds moderate from the west.\",\"startTime\":8.5,\"endTime\":11.2}]}]"
+  }'
+```
+
+The agent auto-detects the format: if the message is a valid JSON array of `{"transcript": [...]}` objects, it parses the segments into timestamped text and joins multiple recordings with `---` separators.
 
 **With images:**
 
@@ -139,22 +152,30 @@ curl -X POST http://localhost:3000/analyze \
 {
   "success": true,
   "report": {
-    "elevationRangeInFeet": "11,500 feet",
-    "aspects": ["E"],
-    "locations": ["Berthoud Pass"],
-    "date": "2024-05-16",
-    "routeDescription": "I traveled east facing terrain at 11,500 feet near Berthoud Pass.",
-    "areaDescription": "East facing terrain at 11,500 feet near Berthoud Pass.",
-    "observationSummary": "No avalanches observed. Winds were moderate from the west at 20 mph.",
-    "weatherObservationSummary": "Winds moderate from the west at 20 mph.",
-    "cracking": { "severity": "None", "details": "N/A" },
-    "collapsing": { "severity": "None", "details": "N/A" },
-    "snowpackDescription": "The snowpack showed no visible signs of instability.",
-    "avalancheObservationType": "None",
-    "avalancheNarrative": "N/A",
-    "latitude": null,
-    "longitude": null,
-    "numberOfAvalanchesObserved": null
+    "inspection": {
+      "elevationRangeInFeet": "11,500 feet",
+      "aspects": ["E"],
+      "locations": ["Berthoud Pass"],
+      "date": "2024-05-16",
+      "routeDescription": "I traveled east facing terrain at 11,500 feet near Berthoud Pass.",
+      "areaDescription": "East facing terrain at 11,500 feet near Berthoud Pass.",
+      "observationSummary": "No avalanches observed. Winds were moderate from the west at 20 mph.",
+      "weatherObservationSummary": "Winds moderate from the west at 20 mph.",
+      "cracking": { "severity": "None", "details": "N/A" },
+      "collapsing": { "severity": "None", "details": "N/A" },
+      "snowpackDescription": "The snowpack showed no visible signs of instability.",
+      "avalancheObservationType": "None",
+      "avalancheNarrative": "N/A",
+      "latitude": null,
+      "longitude": null,
+      "numberOfAvalanchesObserved": null
+    },
+    "metadata": {
+      "timestamp": "2024-05-16T18:30:00Z",
+      "source": "CAIC Field Report",
+      "version": "2.0",
+      "generatedBy": "CAIC Report Agent"
+    }
   }
 }
 ```
@@ -199,6 +220,10 @@ gcloud iam roles create agentCaller \
 
 ## InspectionReport Schema
 
+The report has two top-level keys: `inspection` and `metadata`.
+
+### `inspection`
+
 | Field | Type | Description |
 |---|---|---|
 | `elevationRangeInFeet` | string | e.g. "10,000-12,000 feet" |
@@ -209,11 +234,20 @@ gcloud iam roles create agentCaller \
 | `areaDescription` | string | Physical terrain description |
 | `observationSummary` | string | Hazard assessment, wind loading |
 | `weatherObservationSummary` | string | Temps, wind, sky, precipitation |
-| `cracking` | `{ severity, details }` | None / Minor / Moderate / Shooting/Rumbling / Unknown |
-| `collapsing` | `{ severity, details }` | Same severity scale |
+| `cracking` | `{ severity, details }` | None / Minor / Moderate / Shooting / Unknown |
+| `collapsing` | `{ severity, details }` | None / Minor / Moderate / Rumbling / Unknown |
 | `snowpackDescription` | string | Max 1 sentence |
 | `avalancheObservationType` | string | None, I saw an avalanche, Someone triggered..., etc. |
 | `avalancheNarrative` | string | Details or "N/A" |
 | `latitude` | number \| null | Only from explicit coordinates |
 | `longitude` | number \| null | Only from explicit coordinates |
 | `numberOfAvalanchesObserved` | number \| null | Count or null |
+
+### `metadata`
+
+| Field | Type | Description |
+|---|---|---|
+| `timestamp` | string | ISO 8601 UTC timestamp |
+| `source` | string | Always "CAIC Field Report" |
+| `version` | string | Always "2.0" |
+| `generatedBy` | string | Always "CAIC Report Agent" |

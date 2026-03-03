@@ -1,0 +1,168 @@
+[
+  {
+    "transcript": [
+        {
+            "text": "I'm here on Burford pass.",
+            "startTime": 2.04,
+            "endTime": 3.8
+        },
+        {
+            "text": "I'm on a SE aspect near tree line.",
+            "startTime": 4.4,
+            "endTime": 8
+        },
+        {
+            "text": "This area is known locally as the Teacup bowl.",
+            "startTime": 8.72,
+            "endTime": 12.04
+        },
+        {
+            "text": "I have a ski penetration of about 5 centimeters and boot penetration of about 50 centimeters to the ground.",
+            "startTime": 12.12,
+            "endTime": 22.16
+        },
+        {
+            "text": "The weather is overcast but kind of clearing.",
+            "startTime": 22.84,
+            "endTime": 26.72
+        },
+        {
+            "text": "I've got moderate winds from the West.",
+            "startTime": 27.28,
+            "endTime": 29.76
+        },
+        {
+            "text": "It's pretty warm.",
+            "startTime": 29.76,
+            "endTime": 31.12
+        }
+    ]
+  },
+  {
+    "transcript": [
+        {
+            "text": "I'm here in northeast aspect near tree line.",
+            "startTime": 2.16,
+            "endTime": 4.72
+        },
+        {
+            "text": "I have 55cm high of the snow.",
+            "startTime": 4.72,
+            "endTime": 7.32
+        },
+        {
+            "text": "55 to 50 is fist hard defragmenting snow.",
+            "startTime": 8.04,
+            "endTime": 12.44
+        },
+        {
+            "text": "50 to 49 is thin melt freeze or rain Crest.",
+            "startTime": 13.28,
+            "endTime": 17.64
+        },
+        {
+            "text": "49 down to 30 is 1 finger hard rounding snow that seems like it's starting to facet.",
+            "startTime": 20.68,
+            "endTime": 29.28
+        },
+        {
+            "text": "30 down to 18 is pencil hard rounds.",
+            "startTime": 30.04,
+            "endTime": 34.84
+        },
+        {
+            "text": "Wind packed.",
+            "startTime": 34.92,
+            "endTime": 35.8
+        },
+        {
+            "text": "20 to the ground is first four finger facets.",
+            "startTime": 36.28,
+            "endTime": 39.76
+        }
+    ]
+  },
+  {
+    "transcript": [
+        {
+            "text": "I got.",
+            "startTime": 1.64,
+            "endTime": 2.2
+        },
+        {
+            "text": "40 / 100 end and 30 / 1.",
+            "startTime": 2.44,
+            "endTime": 5
+        },
+        {
+            "text": "100 end on a PST.",
+            "startTime": 5,
+            "endTime": 6.8
+        },
+        {
+            "text": "Southeast Teacup.",
+            "startTime": 7.68,
+            "endTime": 8.96
+        },
+        {
+            "text": "Bowl.",
+            "startTime": 8.96,
+            "endTime": 9.28
+        },
+        {
+            "text": "Berthoud Pass.",
+            "startTime": 9.76,
+            "endTime": 10.6
+        }
+    ]
+  },
+  {
+    "transcript": [
+        {
+            "text": "I'm not here on an E aspect near tree line 11,600 feet close to Berthoud path.",
+            "startTime": 1.64,
+            "endTime": 9.08
+        },
+        {
+            "text": "I had a ski pen coming in here of less than 5 centimeters.",
+            "startTime": 11.24,
+            "endTime": 16.28
+        },
+        {
+            "text": "A boot pen of about 10 centimeters.",
+            "startTime": 16.4,
+            "endTime": 19.8
+        },
+        {
+            "text": "Height of snow is about 50 centimeters.",
+            "startTime": 20.16,
+            "endTime": 25.2
+        },
+        {
+            "text": "I got ECTP 4, ECTP 8 on basal facets in this location.",
+            "startTime": 27.16,
+            "endTime": 37.44
+        },
+        {
+            "text": "Winds are moderate from the West.",
+            "startTime": 38.36,
+            "endTime": 40.48
+        },
+        {
+            "text": "Sky is partially cloudy.",
+            "startTime": 42.2,
+            "endTime": 43.8
+        },
+        {
+            "text": "Structure is very similar to the South.",
+            "startTime": 46.64,
+            "endTime": 49.12
+        },
+        {
+            "text": "Easterly snowpack I dug but the mid pack is stiffer.",
+            "startTime": 49.28,
+            "endTime": 53.8
+        }
+    ]
+  }
+]
