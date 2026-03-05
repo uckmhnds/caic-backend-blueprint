@@ -1,4 +1,4 @@
-// --- Incoming request to our API ---
+// --- Incoming request to blueprint API ---
 
 export interface AnalyzeRequest {
   user_id: string;
