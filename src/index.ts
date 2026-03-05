@@ -1,6 +1,7 @@
 import express from "express";
 import { config } from "./config";
-import analyzeRoute from "./routes/analyze";
+import caicReportRoute from "./routes/caicReport";
+import avalancheReportRoute from "./routes/avalancheReport";
 
 const app = express();
 
@@ -10,7 +11,8 @@ app.get("/", (_req, res) => {
   res.json({ message: "caic-backend-blueprint is running" });
 });
 
-app.use("/analyze", analyzeRoute);
+app.use("/caic-report", caicReportRoute);
+app.use("/avalanche-report", avalancheReportRoute);
 
 app.listen(config.port, () => {
   console.log(`Server is running on http://localhost:${config.port}`);

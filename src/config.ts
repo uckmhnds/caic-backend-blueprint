@@ -13,9 +13,14 @@ export const config = {
   port: parseInt(process.env.PORT || "3000", 10),
   gcpProjectId: requireEnv("GCP_PROJECT_ID"),
   gcpLocation: requireEnv("GCP_LOCATION"),
-  reasoningEngineId: requireEnv("REASONING_ENGINE_ID"),
+  caicReasoningEngineId: requireEnv("CAIC_REASONING_ENGINE_ID"),
+  avalancheReasoningEngineId: requireEnv("AVALANCHE_REASONING_ENGINE_ID"),
 
-  get agentEngineUrl(): string {
-    return `https://${this.gcpLocation}-aiplatform.googleapis.com/v1/projects/${this.gcpProjectId}/locations/${this.gcpLocation}/reasoningEngines/${this.reasoningEngineId}:query`;
+  get caicAgentEngineUrl(): string {
+    return `https://${this.gcpLocation}-aiplatform.googleapis.com/v1/projects/${this.gcpProjectId}/locations/${this.gcpLocation}/reasoningEngines/${this.caicReasoningEngineId}:query`;
+  },
+
+  get avalancheAgentEngineUrl(): string {
+    return `https://${this.gcpLocation}-aiplatform.googleapis.com/v1/projects/${this.gcpProjectId}/locations/${this.gcpLocation}/reasoningEngines/${this.avalancheReasoningEngineId}:query`;
   },
 };

@@ -3,7 +3,8 @@ import { config } from "../config";
 import type {
   AnalyzeRequest,
   AgentEngineRequest,
-  AgentEngineResponse,
+  CaicAgentEngineResponse,
+  AvalancheAgentEngineResponse,
   MessagePart,
 } from "../types";
 
@@ -39,9 +40,9 @@ function buildRequestBody(input: AnalyzeRequest): AgentEngineRequest {
   };
 }
 
-export async function queryAgentEngine(
+export async function queryCaicAgentEngine(
   input: AnalyzeRequest
-): Promise<AgentEngineResponse> {
+): Promise<CaicAgentEngineResponse> {
   const client = await auth.getClient();
   const tokenResponse = await client.getAccessToken();
   const token = tokenResponse.token;
@@ -52,7 +53,7 @@ export async function queryAgentEngine(
 
   const body = buildRequestBody(input);
 
-  const response = await fetch(config.agentEngineUrl, {
+  const response = await fetch(config.caicAgentEngineUrl, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -64,9 +65,41 @@ export async function queryAgentEngine(
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(
-      `Agent Engine returned ${response.status}: ${errorText}`
+      `CAIC Agent Engine returned ${response.status}: ${errorText}`
     );
   }
 
-  return (await response.json()) as AgentEngineResponse;
+  return (await response.json()) as CaicAgentEngineResponse;
+}
+
+export async function queryAvalancheAgentEngine(
+  input: AnalyzeRequest
+): Promise<AvalancheAgentEngineResponse> {
+  const client = await auth.getClient();
+  const tokenResponse = await client.getAccessToken();
+  const token = tokenResponse.token;
+
+  if (!token) {
+    throw new Error("Failed to obtain GCP access token");
+  }
+
+  const body = buildRequestBody(input);
+
+  const response = await fetch(config.avalancheAgentEngineUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Avalanche Agent Engine returned ${response.status}: ${errorText}`
+    );
+  }
+
+  return (await response.json()) as AvalancheAgentEngineResponse;
 }

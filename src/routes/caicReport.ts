@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { queryAgentEngine } from "../clients/agentClient";
+import { queryCaicAgentEngine } from "../clients/agentClient";
 import { validateAnalyzeRequest } from "../middleware/validateAnalyzeRequest";
 import type { AnalyzeRequest } from "../types";
 
@@ -10,23 +10,23 @@ router.post("/", validateAnalyzeRequest, async (req: Request, res: Response) => 
     const { user_id, transcript, images } = req.body as AnalyzeRequest;
 
     console.log(
-      `Processing transcript (${transcript.length} chars) with ${images?.length ?? 0} images`
+      `Processing CAIC report (${transcript.length} chars) with ${images?.length ?? 0} images`
     );
 
-    const result = await queryAgentEngine({ user_id, transcript, images });
-    const report = result.actions?.state_delta?.report;
+    const result = await queryCaicAgentEngine({ user_id, transcript, images });
+    const report = result.output?.actions?.state_delta?.report;
 
     if (!report) {
       res.status(502).json({
         success: false,
-        error: "Agent Engine returned an unexpected response structure",
+        error: "CAIC Agent Engine returned an unexpected response structure",
       });
       return;
     }
 
     res.json({ success: true, report });
   } catch (err) {
-    console.error("Error calling Agent Engine:", err);
+    console.error("Error calling CAIC Agent Engine:", err);
     const message = err instanceof Error ? err.message : "Unknown error";
     res.status(502).json({ success: false, error: message });
   }

@@ -1,30 +1,34 @@
 # CAIC Backend Blueprint
 
-A Node.js Express service that demonstrates **service-to-service authentication** with Google Cloud Vertex AI Agent Engine. It accepts avalanche observer transcripts (text + optional images) and returns structured inspection reports.
+A Node.js Express service that demonstrates **service-to-service authentication** with Google Cloud Vertex AI Agent Engine. It connects to two reasoning engines:
+
+- **CAIC Report Agent** — accepts avalanche observer transcripts (text + optional images) and returns structured inspection reports
+- **Avalanche Report Agent** — accepts avalanche observer transcripts (text + optional images) and returns structured avalanche classification reports (SWAG format)
 
 ## Architecture
 
 ```
-Client --> Express API (POST /analyze) --> Vertex AI Agent Engine (private, GCP auth)
-                                               |
-                                          InspectionReport JSON
+                              ┌─→ CAIC Agent Engine ──→ InspectionReport JSON
+Client ──→ Express API ───────┤
+                              └─→ Avalanche Agent Engine ──→ AvalancheReport JSON
 ```
 
-The Agent Engine endpoint is **private by default** — every request requires a valid GCP access token. This blueprint handles that authentication transparently using `google-auth-library`.
+Both Agent Engine endpoints are **private by default** — every request requires a valid GCP access token. This blueprint handles that authentication transparently using `google-auth-library`.
 
 ## Project Structure
 
 ```
 src/
   index.ts                          Express app entry point
-  config.ts                         Environment config + endpoint URL
+  config.ts                         Environment config + endpoint URLs
   types.ts                          TypeScript interfaces
   clients/
-    agentClient.ts                  GCP auth + Agent Engine HTTP client
+    agentClient.ts                  GCP auth + Agent Engine HTTP clients
   middleware/
     validateAnalyzeRequest.ts       Request validation
   routes/
-    analyze.ts                      POST /analyze route handler
+    caicReport.ts                   POST /caic-report route handler
+    avalancheReport.ts              POST /avalanche-report route handler
 ```
 
 ## Setup
@@ -51,7 +55,8 @@ cp .env.example .env
 ```env
 GCP_PROJECT_ID=939611441652
 GCP_LOCATION=us-central1
-REASONING_ENGINE_ID=8608638384300097536
+CAIC_REASONING_ENGINE_ID=8608638384300097536
+AVALANCHE_REASONING_ENGINE_ID=<your-avalanche-engine-id>
 GOOGLE_APPLICATION_CREDENTIALS=./key.json
 PORT=3000
 ```
@@ -60,7 +65,8 @@ PORT=3000
 |---|---|
 | `GCP_PROJECT_ID` | Google Cloud project ID |
 | `GCP_LOCATION` | Agent Engine region |
-| `REASONING_ENGINE_ID` | Deployed reasoning engine ID |
+| `CAIC_REASONING_ENGINE_ID` | Deployed CAIC report reasoning engine ID |
+| `AVALANCHE_REASONING_ENGINE_ID` | Deployed avalanche report reasoning engine ID |
 | `GOOGLE_APPLICATION_CREDENTIALS` | Path to service account key JSON (local dev only) |
 | `PORT` | Server port (default: 3000) |
 
@@ -91,9 +97,9 @@ curl http://localhost:3000/
 { "message": "caic-backend-blueprint is running" }
 ```
 
-### `POST /analyze`
+### `POST /caic-report`
 
-Submit an observer transcript for structured analysis.
+Submit an observer transcript for structured CAIC inspection analysis.
 
 **Request body:**
 
@@ -108,7 +114,7 @@ Submit an observer transcript for structured analysis.
 **Text-only example:**
 
 ```bash
-curl -X POST http://localhost:3000/analyze \
+curl -X POST http://localhost:3000/caic-report \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "backend-service",
@@ -119,7 +125,7 @@ curl -X POST http://localhost:3000/analyze \
 **Structured transcript (from transcription service):**
 
 ```bash
-curl -X POST http://localhost:3000/analyze \
+curl -X POST http://localhost:3000/caic-report \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "backend-service",
@@ -132,7 +138,7 @@ The agent auto-detects the format: if the message is a valid JSON array of `{"tr
 **With images:**
 
 ```bash
-curl -X POST http://localhost:3000/analyze \
+curl -X POST http://localhost:3000/caic-report \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "backend-service",
@@ -180,6 +186,80 @@ curl -X POST http://localhost:3000/analyze \
 }
 ```
 
+### `POST /avalanche-report`
+
+Submit an observer transcript for structured avalanche classification analysis (SWAG format).
+
+**Request body:**
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `user_id` | string | yes | Identifier for the calling user/service |
+| `transcript` | string | yes | Raw transcript text or stringified JSON array of transcript objects |
+| `images` | array | no | Base64-encoded images |
+| `images[].mimeType` | string | yes* | e.g. `image/jpeg` |
+| `images[].data` | string | yes* | Base64-encoded image data |
+
+**Example:**
+
+```bash
+curl -X POST http://localhost:3000/avalanche-report \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "backend-service",
+    "transcript": "00:02\nI observed a storm slab avalanche on east facing terrain at 11,500 feet near Berthoud Pass.\n00:15\nIt appeared to be skier triggered, roughly 18 inches deep and 100 feet wide."
+  }'
+```
+
+**Success response (200):**
+
+```json
+{
+  "success": true,
+  "report": {
+    "avalanches": [
+      {
+        "elevationCategory": ">TL",
+        "aspect": "E",
+        "avalancheProblemType": "Storm Slab - Storm Slab Avalanche Problem",
+        "type": "SS",
+        "trigger": "AS",
+        "secondaryTrigger": "u",
+        "rSize": "R2",
+        "dSize": "D2",
+        "incident": false,
+        "date": "2024-05-16",
+        "estimatedKnown": "Estimated",
+        "time": "U",
+        "slopeAngle": 38,
+        "avgDepth": "18 inches",
+        "avgWidth": "100 feet",
+        "avgVerticalRun": "500 feet",
+        "maxVerticalRun": "600 feet",
+        "layerType": "Layer",
+        "grainType": "Storm Slab",
+        "slidingSurface": "S",
+        "elevation": "11,500 feet",
+        "terminus": "MP",
+        "roadStatus": "Unknown",
+        "centerlineDepth": "18 inches",
+        "centerlineWidth": "100 feet",
+        "areaDescription": "East facing terrain near Berthoud Pass",
+        "avalancheComments": "Storm slab observed on east-facing terrain."
+      }
+    ],
+    "metadata": {
+      "timestamp": "2024-05-16T18:30:00Z",
+      "source": "CAIC Field Report",
+      "version": "1.0",
+      "generatedBy": "Avalanche Report Agent"
+    }
+  }
+}
+```
+
+### Error Responses
+
 **Validation error (400):**
 
 ```json
@@ -189,7 +269,7 @@ curl -X POST http://localhost:3000/analyze \
 **Upstream error (502):**
 
 ```json
-{ "success": false, "error": "Agent Engine returned 401: ..." }
+{ "success": false, "error": "CAIC Agent Engine returned 401: ..." }
 ```
 
 ## Authentication Flow
@@ -207,7 +287,7 @@ curl -X POST http://localhost:3000/analyze \
 
 | Who | Role | Why |
 |---|---|---|
-| Calling service account | `roles/aiplatform.user` or custom role with `aiplatform.reasoningEngines.query` | Invoke the agent |
+| Calling service account | `roles/aiplatform.user` or custom role with `aiplatform.reasoningEngines.query` | Invoke the agents |
 
 ### Least privilege custom role
 
@@ -218,7 +298,7 @@ gcloud iam roles create agentCaller \
   --permissions="aiplatform.reasoningEngines.query,aiplatform.reasoningEngines.get"
 ```
 
-## InspectionReport Schema
+## InspectionReport Schema (CAIC Agent)
 
 The report has two top-level keys: `inspection` and `metadata`.
 
@@ -251,3 +331,50 @@ The report has two top-level keys: `inspection` and `metadata`.
 | `source` | string | Always "CAIC Field Report" |
 | `version` | string | Always "2.0" |
 | `generatedBy` | string | Always "CAIC Report Agent" |
+
+## AvalancheReport Schema (Avalanche Agent)
+
+The report has two top-level keys: `avalanches` and `metadata`.
+
+### `avalanches[]`
+
+Each entry has 27 fields following the SWAG classification:
+
+| Field | Type | Values |
+|---|---|---|
+| `elevationCategory` | string | All, >TL, TL, <TL, U |
+| `aspect` | string | All, N, NE, E, SE, S, SW, W, NW, U |
+| `avalancheProblemType` | string | Loose Dry, Storm Slab, Wind Slab, Persistent Slab, Loose Wet, Wet Slab, Cornice, Glide, Deep Persistent, Unknown |
+| `type` | string | L, WL, SS, HS, WS, G, \|, SF, C, R, U |
+| `trigger` | string | N, AS, AR, Al, AF, AC, AM, AN, AK, AV, AA, AE, AL, AB, AX, AH, AP, AW, AU, AO, U, A |
+| `secondaryTrigger` | string | u, c, r, y, U |
+| `rSize` | string | R1–R5, U |
+| `dSize` | string | D1–D5, U |
+| `incident` | boolean | Whether an incident was involved |
+| `date` | string | Date of the avalanche |
+| `estimatedKnown` | string | Estimated, Known |
+| `time` | string | Time of the avalanche |
+| `slopeAngle` | number \| null | Slope angle in degrees |
+| `avgDepth` | string | Average depth |
+| `avgWidth` | string | Average width |
+| `avgVerticalRun` | string | Average vertical run |
+| `maxVerticalRun` | string | Maximum vertical run |
+| `layerType` | string | Layer, Interface, Unknown |
+| `grainType` | string | Precipitation Particles, Machine Made, Decomposing or Fragmented, Rounded Grains, Faceted Crystals, Near Surface Facets, Depth Hoar, Surface Hoar, Melt Form, Ice Mass, Crust, Unknown |
+| `slidingSurface` | string | S, \|, 0, G, U |
+| `elevation` | string | Elevation value |
+| `terminus` | string | TP, MP, BP, U |
+| `roadStatus` | string | Closed, Open, Unknown |
+| `centerlineDepth` | string | Centerline depth |
+| `centerlineWidth` | string | Centerline width |
+| `areaDescription` | string | Description of the avalanche area |
+| `avalancheComments` | string | Comments on the avalanche |
+
+### Avalanche `metadata`
+
+| Field | Type | Description |
+|---|---|---|
+| `timestamp` | string | ISO 8601 UTC timestamp |
+| `source` | string | Source of the inspection data |
+| `version` | string | Report version |
+| `generatedBy` | string | Identifier of the generating entity |
